@@ -4,9 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../src/StakingContract.sol";
 import "../src/MaliciousContract.sol";
-import "../src/ReentrancyAttack.sol";
 import "ds-test/src/test.sol";
-
 
 // contract StakingContractTest is Test {
 //     StakingContract stakingContract;
@@ -46,6 +44,10 @@ import "ds-test/src/test.sol";
 // }
 
 //test2
+
+import "ds-test/test.sol";
+
+
 contract StakingContractTest is DSTest {
     StakingContract stakingContract;
     ReentrancyAttack attacker;
@@ -63,3 +65,5 @@ contract StakingContractTest is DSTest {
         assertLt(initialBalance, finalBalance, "The attack should increase the attacker's balance");
     }
 }
+
+
