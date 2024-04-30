@@ -4,40 +4,62 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../src/StakingContract.sol";
 import "../src/MaliciousContract.sol";
+import "../src/ReentrancyAttack.sol";
+import "ds-test/src/test.sol";
 
-contract StakingContractTest is Test {
+
+// contract StakingContractTest is Test {
+//     StakingContract stakingContract;
+//     MaliciousContract maliciousContract;
+
+//     function setUp() public {
+//         stakingContract = new StakingContract();
+//         // Deploy the malicious contract with the staking contract's address
+//         maliciousContract = new MaliciousContract(address(stakingContract));
+
+//         // Allocate 1 ether to the staking contract to simulate staked funds
+//         vm.deal(address(stakingContract), 1 ether);
+
+//         // Allocate 1 ether to the malicious contract for the attack
+//         vm.deal(address(maliciousContract), 1 ether);
+//     }
+
+//     function testAttack() public {
+//         // Initial balance of the malicious contract before the attack
+//         uint initialBalance = address(maliciousContract).balance;
+
+//         // Start the attack by calling the attack function with 1 ether
+//         // Using vm.prank to make the call from the malicious contract
+//         vm.prank(address(maliciousContract));
+//         maliciousContract.attack{value: 1 ether}();
+
+//         // Balance of the malicious contract after the attack
+//         uint finalBalance = address(maliciousContract).balance;
+
+//         // Check if the balance of the malicious contract increased after the attack
+//         assertTrue(finalBalance > initialBalance, "Attack did not increase balance");
+
+//         // Check if the balance of the staking contract decreased to zero after the attack
+//         uint stakingContractBalance = address(stakingContract).balance;
+//         assertTrue(stakingContractBalance == 0, "Staking contract still has funds");
+//     }
+// }
+
+//test2
+contract StakingContractTest is DSTest {
     StakingContract stakingContract;
-    MaliciousContract maliciousContract;
+    ReentrancyAttack attacker;
 
     function setUp() public {
         stakingContract = new StakingContract();
-        // Deploy the malicious contract with the staking contract's address
-        maliciousContract = new MaliciousContract(address(stakingContract));
-
-        // Allocate 1 ether to the staking contract to simulate staked funds
-        vm.deal(address(stakingContract), 1 ether);
-
-        // Allocate 1 ether to the malicious contract for the attack
-        vm.deal(address(maliciousContract), 1 ether);
+        attacker = new ReentrancyAttack(address(stakingContract));
     }
 
-    function testAttack() public {
-        // Initial balance of the malicious contract before the attack
-        uint initialBalance = address(maliciousContract).balance;
+    function testReentrancyAttack() public {
+        uint initialBalance = address(attacker).balance;
+        attacker.attack{value: 1 ether}();
+        uint finalBalance = address(attacker).balance;
 
-        // Start the attack by calling the attack function with 1 ether
-        // Using vm.prank to make the call from the malicious contract
-        vm.prank(address(maliciousContract));
-        maliciousContract.attack{value: 1 ether}();
-
-        // Balance of the malicious contract after the attack
-        uint finalBalance = address(maliciousContract).balance;
-
-        // Check if the balance of the malicious contract increased after the attack
-        assertTrue(finalBalance > initialBalance, "Attack did not increase balance");
-
-        // Check if the balance of the staking contract decreased to zero after the attack
-        uint stakingContractBalance = address(stakingContract).balance;
-        assertTrue(stakingContractBalance == 0, "Staking contract still has funds");
+        assertLt(initialBalance, finalBalance, "The attack should increase the attacker's balance");
     }
 }
